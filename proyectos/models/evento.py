@@ -1,50 +1,36 @@
 from django.db import models
-from proyectos.models.cliente import Cliente
-from proyectos.models.usuario import Usuario
+from django.conf import settings
+from .cliente import Cliente
 
 
 class Evento(models.Model):
-    ESTADO_CHOICES = [
-        ('planificacion', 'Planificación'),
-        ('en_proceso', 'En Proceso'),
-        ('completado', 'Completado'),
-        ('cancelado', 'Cancelado'),
-    ]
 
-    nombre_evento = models.CharField(max_length=200, verbose_name='nombre del evento')
-    descripcion = models.TextField(blank=True, verbose_name='descripción')
-    fecha_evento = models.DateField(verbose_name='fecha del evento')
-    ubicacion = models.CharField(max_length=255, blank=True, verbose_name='ubicación')
-    presupuesto = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        verbose_name='presupuesto',
-    )
+    class Estado(models.TextChoices):
+        PLANIFICADO = "planificado", "Planificado"
+        EN_PROGRESO = "en_progreso", "En Progreso"
+        COMPLETADO = "completado", "Completado"
+        CANCELADO = "cancelado", "Cancelado"
+
+    nombre_evento = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
+    fecha_evento = models.DateField()
+    ubicacion = models.CharField(max_length=255, blank=True)
+    presupuesto = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     estado = models.CharField(
-        max_length=20,
-        choices=ESTADO_CHOICES,
-        default='planificacion',
-        verbose_name='estado',
+        max_length=20, choices=Estado.choices, default=Estado.PLANIFICADO
     )
     cliente = models.ForeignKey(
-        Cliente,
-        on_delete=models.PROTECT,
-        related_name='eventos',
-        verbose_name='cliente',
+        Cliente, on_delete=models.PROTECT, related_name="eventos"
     )
-    coordinador = models.ForeignKey(
-        Usuario,
-        on_delete=models.PROTECT,
-        related_name='eventos',
-        verbose_name='coordinador',
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="eventos"
     )
 
     class Meta:
-        ordering = ['-fecha_evento']
-        verbose_name = 'evento'
-        verbose_name_plural = 'eventos'
+        db_table = "eventos"
+        verbose_name = "Evento"
+        verbose_name_plural = "Eventos"
+        ordering = ["fecha_evento"]
 
     def __str__(self):
-        return f"{self.nombre_evento} - {self.get_estado_display()}"
+        return f"{self.nombre_evento} | {self.fecha_evento} | {self.estado}"

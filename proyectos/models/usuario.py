@@ -3,30 +3,21 @@ from django.db import models
 
 
 class Usuario(AbstractUser):
-    ROL_CHOICES = [
-        ('admin', 'Administrador'),
-        ('coordinador', 'Coordinador'),
-        ('asistente', 'Asistente'),
-    ]
 
-    username = None
-    nombre = models.CharField(max_length=100, verbose_name='nombre')
-    apellido = models.CharField(max_length=100, verbose_name='apellido')
-    correo = models.EmailField(unique=True, verbose_name='correo electrónico')
+    class Rol(models.TextChoices):
+        ADMIN = "admin", "Administrador"
+        GESTOR = "gestor", "Gestor de Proyectos"
+        COLABORADOR = "colaborador", "Colaborador"
+
     rol = models.CharField(
-        max_length=20,
-        choices=ROL_CHOICES,
-        default='asistente',
-        verbose_name='rol',
+        max_length=20, choices=Rol.choices, default=Rol.COLABORADOR
     )
 
-    USERNAME_FIELD = 'correo'
-    REQUIRED_FIELDS = ['nombre', 'apellido']
-
     class Meta:
-        ordering = ['correo']
-        verbose_name = 'usuario'
-        verbose_name_plural = 'usuarios'
+        db_table = "usuarios"
+        verbose_name = "Usuario"
+        verbose_name_plural = "Usuarios"
+        ordering = ["last_name", "first_name"]
 
     def __str__(self):
-        return f"{self.nombre} {self.apellido} ({self.rol})"
+        return f"{self.first_name} {self.last_name} ({self.email})"

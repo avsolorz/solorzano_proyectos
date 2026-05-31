@@ -3,23 +3,22 @@ from proyectos.models import Tarea
 
 
 class TareaSerializer(serializers.ModelSerializer):
+    evento_nombre = serializers.CharField(source="evento.nombre_evento", read_only=True)
+    prioridad_display = serializers.CharField(source="get_prioridad_display", read_only=True)
+    estado_display = serializers.CharField(source="get_estado_display", read_only=True)
+
     class Meta:
         model = Tarea
-        fields = '__all__'
-
-    def validate(self, data):
-        fecha_limite = data.get('fecha_limite')
-        evento = data.get('evento')
-
-        if fecha_limite and evento:
-            if fecha_limite < evento.fecha_evento:
-                raise serializers.ValidationError(
-                    'La fecha límite no puede ser anterior a la fecha del evento.'
-                )
-        return data
-
-
-class TareaCambiarEstadoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tarea
-        fields = ['estado']
+        fields = [
+            "id",
+            "nombre_tarea",
+            "descripcion",
+            "fecha_limite",
+            "prioridad",
+            "prioridad_display",
+            "estado",
+            "estado_display",
+            "evento",
+            "evento_nombre",
+        ]
+        read_only_fields = ["id"]

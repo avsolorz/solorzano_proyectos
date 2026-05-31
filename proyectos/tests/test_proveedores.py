@@ -1,42 +1,52 @@
 import pytest
-from rest_framework.test import APIClient
-from proyectos.tests.conftest import ProveedorFactory
 
 
 @pytest.mark.django_db
-def test_listar_proveedores_autenticado_ok(api_client):
-    ProveedorFactory.create_batch(3)
-    response = api_client.get('/api/v1/proveedores/')
-    assert response.status_code == 200
-    assert response.data['count'] >= 3
+class TestProveedorListar:
+
+    def test_admin_puede_listar(self, admin_client, proveedor):
+        response = admin_client.get("/api/v1/proveedores/")
+        assert response.status_code == 200
+        assert response.data["total"] >= 1
+
+    def test_colaborador_puede_listar(self, colaborador_client, proveedor):
+        response = colaborador_client.get("/api/v1/proveedores/")
+        assert response.status_code == 200
+
+    def test_sin_token_no_puede_listar(self, api_client, proveedor):
+        response = api_client.get("/api/v1/proveedores/")
+        assert response.status_code == 401
 
 
 @pytest.mark.django_db
-def test_listar_proveedores_sin_auth_retorna_401():
-    client = APIClient()
-    response = client.get('/api/v1/proveedores/')
-    assert response.status_code == 401
+class TestProveedorCrear:
+
+    def test_gestor_puede_crear(self, gestor_client):
+        response = gestor_client.post("/api/v1/proveedores/", {
+            "nombre_empresa": "Sonido Pro S.A.",
+            "contacto": "Pedro Ruiz",
+            "telefono": "0997654321",
+            "correo": "pedroruiz@sonidopro.com",
+            "servicio": "Equipos de audio y video",
+        }, format="json")
+        assert response.status_code == 201
+        assert response.data["nombre_empresa"] == "Sonido Pro S.A."
+
+    def test_colaborador_no_puede_crear(self, colaborador_client):
+        response = colaborador_client.post("/api/v1/proveedores/", {
+            "nombre_empresa": "Proveedor Colab",
+            "servicio": "Varios",
+        }, format="json")
+        assert response.status_code == 403
 
 
 @pytest.mark.django_db
-def test_crear_proveedor_admin_ok(admin_client):
-    data = {
-        'nombre_empresa': 'Catering Premium S.A.',
-        'contacto': 'Juan Pérez',
-        'telefono': '0997654321',
-        'correo': 'catering@premium.com',
-        'servicio': 'Catering y banquetes',
-    }
-    response = admin_client.post('/api/v1/proveedores/', data, format='json')
-    assert response.status_code == 201
-    assert response.data['nombre_empresa'] == 'Catering Premium S.A.'
+class TestProveedorEliminar:
 
+    def test_admin_puede_eliminar(self, admin_client, proveedor):
+        response = admin_client.delete(f"/api/v1/proveedores/{proveedor.id}/")
+        assert response.status_code == 204
 
-@pytest.mark.django_db
-def test_crear_proveedor_coordinador_retorna_403(api_client):
-    data = {
-        'nombre_empresa': 'Proveedor No Permitido',
-        'correo': 'nopermitido@proveedor.com',
-    }
-    response = api_client.post('/api/v1/proveedores/', data, format='json')
-    assert response.status_code == 403
+    def test_gestor_no_puede_eliminar(self, gestor_client, proveedor):
+        response = gestor_client.delete(f"/api/v1/proveedores/{proveedor.id}/")
+        assert response.status_code == 403

@@ -1,19 +1,29 @@
-from proyectos.views.health import HealthCheckView
-from proyectos.views.auth import LoginView, LogoutView, MeView
-from proyectos.views.usuario import UsuarioViewSet
-from proyectos.views.cliente import ClienteViewSet
-from proyectos.views.evento import EventoViewSet
-from proyectos.views.tarea import TareaViewSet
-from proyectos.views.proveedor import ProveedorViewSet
+from .usuario import UsuarioViewSet
+from .cliente import ClienteViewSet
+from .evento import EventoViewSet
+from .tarea import TareaViewSet
+from .proveedor import ProveedorViewSet
+from .health import health_check
+from .auth import (
+    LoginView,
+    RefreshTokenView,
+    RegistroView,
+    logout_view,
+    PerfilView,
+    cambiar_password,
+)
 
 __all__ = [
-    'HealthCheckView',
-    'LoginView',
-    'LogoutView',
-    'MeView',
-    'UsuarioViewSet',
-    'ClienteViewSet',
-    'EventoViewSet',
-    'TareaViewSet',
-    'ProveedorViewSet',
+    "UsuarioViewSet",
+    "ClienteViewSet",
+    "EventoViewSet",
+    "TareaViewSet",
+    "ProveedorViewSet",
+    "health_check",
+    "LoginView",
+    "RefreshTokenView",
+    "RegistroView",
+    "logout_view",
+    "PerfilView",
+    "cambiar_password",
 ]

@@ -1,120 +1,80 @@
 import pytest
 from datetime import date, timedelta
-from rest_framework.test import APIClient
-from proyectos.tests.conftest import (
-    UsuarioFactory,
-    ClienteFactory,
-    EventoFactory,
-    TareaFactory,
-    get_jwt_client,
-)
+from proyectos.models import Evento
 
 
 @pytest.mark.django_db
-def test_admin_ve_todos_los_eventos(admin_client, db):
-    coord1 = UsuarioFactory(rol='coordinador')
-    coord2 = UsuarioFactory(rol='coordinador')
-    EventoFactory(coordinador=coord1)
-    EventoFactory(coordinador=coord2)
-    response = admin_client.get('/api/v1/eventos/')
-    assert response.status_code == 200
-    assert response.data['count'] >= 2
+class TestEventoListar:
+
+    def test_admin_puede_listar(self, admin_client, evento):
+        response = admin_client.get("/api/v1/eventos/")
+        assert response.status_code == 200
+        assert response.data["total"] >= 1
+
+    def test_colaborador_puede_listar(self, colaborador_client, evento):
+        response = colaborador_client.get("/api/v1/eventos/")
+        assert response.status_code == 200
+
+    def test_sin_token_no_puede_listar(self, api_client, evento):
+        response = api_client.get("/api/v1/eventos/")
+        assert response.status_code == 401
 
 
 @pytest.mark.django_db
-def test_coordinador_solo_ve_sus_eventos(coordinador, db):
-    otro_coord = UsuarioFactory(rol='coordinador')
-    EventoFactory(coordinador=coordinador)
-    EventoFactory(coordinador=otro_coord)
+class TestEventoCrear:
 
-    client = get_jwt_client(coordinador)
-    response = client.get('/api/v1/eventos/')
-    assert response.status_code == 200
-    assert response.data['count'] == 1
+    def test_gestor_puede_crear(self, gestor_client, cliente, gestor_user):
+        response = gestor_client.post("/api/v1/eventos/", {
+            "nombre_evento": "Workshop Tecnología",
+            "descripcion": "Taller intensivo",
+            "fecha_evento": str(date.today() + timedelta(days=20)),
+            "ubicacion": "Sala A",
+            "presupuesto": "2000.00",
+            "estado": "planificado",
+            "cliente": cliente.id,
+            "usuario": gestor_user.id,
+        }, format="json")
+        assert response.status_code == 201
+        assert response.data["nombre_evento"] == "Workshop Tecnología"
 
-
-@pytest.mark.django_db
-def test_crear_evento_coordinador_ok(api_client, coordinador, db):
-    cliente = ClienteFactory()
-    data = {
-        'nombre_evento': 'Evento Test',
-        'fecha_evento': str(date.today() + timedelta(days=30)),
-        'cliente': cliente.id,
-        'coordinador': coordinador.id,
-        'estado': 'planificacion',
-    }
-    response = api_client.post('/api/v1/eventos/', data, format='json')
-    assert response.status_code == 201
-
-
-@pytest.mark.django_db
-def test_crear_evento_fecha_pasada_retorna_400(api_client, coordinador, db):
-    cliente = ClienteFactory()
-    data = {
-        'nombre_evento': 'Evento Pasado',
-        'fecha_evento': str(date.today() - timedelta(days=1)),
-        'cliente': cliente.id,
-        'coordinador': coordinador.id,
-    }
-    response = api_client.post('/api/v1/eventos/', data, format='json')
-    assert response.status_code == 400
+    def test_colaborador_no_puede_crear(self, colaborador_client, cliente, gestor_user):
+        response = colaborador_client.post("/api/v1/eventos/", {
+            "nombre_evento": "Evento Colab",
+            "fecha_evento": str(date.today() + timedelta(days=5)),
+            "cliente": cliente.id,
+            "usuario": gestor_user.id,
+        }, format="json")
+        assert response.status_code == 403
 
 
 @pytest.mark.django_db
-def test_actualizar_evento_propietario_ok(coordinador, db):
-    evento = EventoFactory(coordinador=coordinador)
-    client = get_jwt_client(coordinador)
-    response = client.patch(
-        f'/api/v1/eventos/{evento.id}/',
-        {'estado': 'en_proceso'},
-        format='json',
-    )
-    assert response.status_code == 200
+class TestEventoCambiarEstado:
+
+    def test_gestor_puede_cambiar_estado(self, gestor_client, evento):
+        url = f"/api/v1/eventos/{evento.id}/cambiar-estado/"
+        response = gestor_client.patch(url, {"estado": "en_progreso"}, format="json")
+        assert response.status_code == 200
+        assert response.data["estado"] == "en_progreso"
+
+    def test_estado_invalido_falla(self, gestor_client, evento):
+        url = f"/api/v1/eventos/{evento.id}/cambiar-estado/"
+        response = gestor_client.patch(url, {"estado": "inexistente"}, format="json")
+        assert response.status_code == 400
+
+    def test_colaborador_no_puede_cambiar_estado(self, colaborador_client, evento):
+        url = f"/api/v1/eventos/{evento.id}/cambiar-estado/"
+        response = colaborador_client.patch(url, {"estado": "completado"}, format="json")
+        assert response.status_code == 403
 
 
 @pytest.mark.django_db
-def test_actualizar_evento_otro_coordinador_retorna_403(db):
-    coord1 = UsuarioFactory(rol='coordinador')
-    coord2 = UsuarioFactory(rol='coordinador')
-    evento = EventoFactory(coordinador=coord1)
+class TestEventoPorCliente:
 
-    client = get_jwt_client(coord2)
-    response = client.patch(
-        f'/api/v1/eventos/{evento.id}/',
-        {'estado': 'en_proceso'},
-        format='json',
-    )
-    # El queryset filtra por coordinador propietario, coord2 recibe 404 (evento no visible)
-    assert response.status_code == 404
+    def test_buscar_por_cliente(self, gestor_client, evento, cliente):
+        response = gestor_client.get(f"/api/v1/eventos/por-cliente/?cliente_id={cliente.id}")
+        assert response.status_code == 200
+        assert len(response.data) >= 1
 
-
-@pytest.mark.django_db
-def test_listar_tareas_de_evento(api_client, coordinador, db):
-    evento = EventoFactory(coordinador=coordinador)
-    TareaFactory.create_batch(3, evento=evento)
-    response = api_client.get(f'/api/v1/eventos/{evento.id}/tareas/')
-    assert response.status_code == 200
-    assert response.data['count'] == 3
-
-
-@pytest.mark.django_db
-def test_filtro_por_estado(admin_client, db):
-    EventoFactory(estado='planificacion')
-    EventoFactory(estado='completado')
-    response = admin_client.get('/api/v1/eventos/?estado=planificacion')
-    assert response.status_code == 200
-    for evento in response.data['results']:
-        assert evento['estado'] == 'planificacion'
-
-
-@pytest.mark.django_db
-def test_filtro_por_rango_fechas(admin_client, db):
-    hoy = date.today()
-    EventoFactory(fecha_evento=hoy + timedelta(days=10))
-    EventoFactory(fecha_evento=hoy + timedelta(days=60))
-
-    desde = str(hoy + timedelta(days=5))
-    hasta = str(hoy + timedelta(days=30))
-    response = admin_client.get(f'/api/v1/eventos/?fecha_evento_desde={desde}&fecha_evento_hasta={hasta}')
-    assert response.status_code == 200
-    assert response.data['count'] == 1
+    def test_sin_parametro_falla(self, gestor_client):
+        response = gestor_client.get("/api/v1/eventos/por-cliente/")
+        assert response.status_code == 400

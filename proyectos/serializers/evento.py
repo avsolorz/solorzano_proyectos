@@ -1,30 +1,31 @@
-from datetime import date
 from rest_framework import serializers
-from proyectos.models import Evento, Cliente, Usuario
-from proyectos.serializers.cliente import ClienteResumenSerializer
-from proyectos.serializers.auth import UsuarioTokenSerializer
+from proyectos.models import Evento
 
 
 class EventoSerializer(serializers.ModelSerializer):
-    cliente = ClienteResumenSerializer(read_only=True)
-    coordinador = UsuarioTokenSerializer(read_only=True)
+    cliente_nombre = serializers.CharField(source="cliente.nombre", read_only=True)
+    usuario_nombre = serializers.SerializerMethodField()
+    estado_display = serializers.CharField(source="get_estado_display", read_only=True)
 
     class Meta:
         model = Evento
-        fields = '__all__'
+        fields = [
+            "id",
+            "nombre_evento",
+            "descripcion",
+            "fecha_evento",
+            "ubicacion",
+            "presupuesto",
+            "estado",
+            "estado_display",
+            "cliente",
+            "cliente_nombre",
+            "usuario",
+            "usuario_nombre",
+        ]
+        read_only_fields = ["id"]
 
-
-class EventoCreateUpdateSerializer(serializers.ModelSerializer):
-    cliente = serializers.PrimaryKeyRelatedField(queryset=Cliente.objects.all())
-    coordinador = serializers.PrimaryKeyRelatedField(queryset=Usuario.objects.all())
-
-    class Meta:
-        model = Evento
-        fields = '__all__'
-
-    def validate_fecha_evento(self, value):
-        if value < date.today():
-            raise serializers.ValidationError(
-                'La fecha del evento no puede ser en el pasado.'
-            )
-        return value
+    def get_usuario_nombre(self, obj):
+        if obj.usuario:
+            return f"{obj.usuario.first_name} {obj.usuario.last_name}".strip()
+        return None

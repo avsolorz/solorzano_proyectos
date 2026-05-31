@@ -1,29 +1,18 @@
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets, filters
+from django_filters.rest_framework import DjangoFilterBackend
 from proyectos.models import Usuario
-from proyectos.serializers import (
-    UsuarioSerializer,
-    UsuarioCreateSerializer,
-    UsuarioCambiarRolSerializer,
-)
+from proyectos.serializers import UsuarioSerializer
 from proyectos.permissions import EsAdmin
 
 
-class UsuarioViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated, EsAdmin]
+class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
+    serializer_class = UsuarioSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["rol", "is_active", "is_staff"]
+    search_fields = ["username", "first_name", "last_name", "email"]
+    ordering_fields = ["last_name", "first_name", "date_joined"]
+    ordering = ["last_name"]
 
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return UsuarioCreateSerializer
-        return UsuarioSerializer
-
-    @action(methods=['post'], detail=True, url_path='cambiar-rol')
-    def cambiar_rol(self, request, pk=None):
-        usuario = self.get_object()
-        serializer = UsuarioCambiarRolSerializer(usuario, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(UsuarioSerializer(usuario).data)
+    def get_permissions(self):
+        return [EsAdmin()]

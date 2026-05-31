@@ -1,44 +1,38 @@
-from django_filters import FilterSet, CharFilter, DateFilter, NumberFilter
-from proyectos.models import Cliente, Evento, Tarea, Proveedor
+import django_filters
+from proyectos.models import Evento, Tarea
 
 
-class ClienteFilter(FilterSet):
-    nombre = CharFilter(lookup_expr='icontains')
-    correo = CharFilter(lookup_expr='icontains')
-
-    class Meta:
-        model = Cliente
-        fields = ['nombre', 'correo']
-
-
-class EventoFilter(FilterSet):
-    estado = CharFilter(lookup_expr='exact')
-    fecha_evento_desde = DateFilter(field_name='fecha_evento', lookup_expr='gte')
-    fecha_evento_hasta = DateFilter(field_name='fecha_evento', lookup_expr='lte')
-    cliente_nombre = CharFilter(field_name='cliente__nombre', lookup_expr='icontains')
-    coordinador_id = NumberFilter(field_name='coordinador__id')
+class EventoFilter(django_filters.FilterSet):
+    nombre_evento = django_filters.CharFilter(lookup_expr="icontains")
+    estado = django_filters.ChoiceFilter(choices=Evento.Estado.choices)
+    cliente = django_filters.NumberFilter(field_name="cliente__id")
+    usuario = django_filters.NumberFilter(field_name="usuario__id")
+    ubicacion = django_filters.CharFilter(lookup_expr="icontains")
+    fecha_desde = django_filters.DateFilter(field_name="fecha_evento", lookup_expr="gte")
+    fecha_hasta = django_filters.DateFilter(field_name="fecha_evento", lookup_expr="lte")
+    presupuesto_min = django_filters.NumberFilter(field_name="presupuesto", lookup_expr="gte")
+    presupuesto_max = django_filters.NumberFilter(field_name="presupuesto", lookup_expr="lte")
 
     class Meta:
         model = Evento
-        fields = ['estado', 'fecha_evento_desde', 'fecha_evento_hasta',
-                  'cliente_nombre', 'coordinador_id']
+        fields = [
+            "nombre_evento", "estado", "cliente", "usuario",
+            "ubicacion", "fecha_desde", "fecha_hasta",
+            "presupuesto_min", "presupuesto_max",
+        ]
 
 
-class TareaFilter(FilterSet):
-    estado = CharFilter(lookup_expr='exact')
-    prioridad = CharFilter(lookup_expr='exact')
-    evento_id = NumberFilter(field_name='evento__id')
-    fecha_hasta = DateFilter(field_name='fecha_limite', lookup_expr='lte')
+class TareaFilter(django_filters.FilterSet):
+    nombre_tarea = django_filters.CharFilter(lookup_expr="icontains")
+    estado = django_filters.ChoiceFilter(choices=Tarea.Estado.choices)
+    prioridad = django_filters.ChoiceFilter(choices=Tarea.Prioridad.choices)
+    evento = django_filters.NumberFilter(field_name="evento__id")
+    fecha_limite_desde = django_filters.DateFilter(field_name="fecha_limite", lookup_expr="gte")
+    fecha_limite_hasta = django_filters.DateFilter(field_name="fecha_limite", lookup_expr="lte")
 
     class Meta:
         model = Tarea
-        fields = ['estado', 'prioridad', 'evento_id', 'fecha_hasta']
-
-
-class ProveedorFilter(FilterSet):
-    nombre_empresa = CharFilter(lookup_expr='icontains')
-    servicio = CharFilter(lookup_expr='icontains')
-
-    class Meta:
-        model = Proveedor
-        fields = ['nombre_empresa', 'servicio']
+        fields = [
+            "nombre_tarea", "estado", "prioridad", "evento",
+            "fecha_limite_desde", "fecha_limite_hasta",
+        ]

@@ -3,53 +3,46 @@ from django.contrib.auth.admin import UserAdmin
 from proyectos.models import Usuario, Cliente, Evento, Tarea, Proveedor
 
 
-class TareaInline(admin.TabularInline):
-    model = Tarea
-    extra = 1
-    fields = ['nombre_tarea', 'prioridad', 'estado', 'fecha_limite']
-
-
 @admin.register(Usuario)
 class UsuarioAdmin(UserAdmin):
-    list_display = ['correo', 'nombre', 'apellido', 'rol', 'is_active']
-    list_filter = ['rol', 'is_active']
-    search_fields = ['correo', 'nombre', 'apellido']
-    ordering = ['correo']
-    fieldsets = (
-        ('Información personal', {'fields': ('correo', 'nombre', 'apellido', 'password')}),
-        ('Permisos', {'fields': ('rol', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
-        ('Fechas', {'fields': ('last_login', 'date_joined')}),
+    list_display = ["username", "first_name", "last_name", "email", "rol", "is_staff", "is_active"]
+    list_filter = ["rol", "is_staff", "is_active"]
+    search_fields = ["username", "first_name", "last_name", "email"]
+    ordering = ["last_name", "first_name"]
+    fieldsets = UserAdmin.fieldsets + (
+        ("Rol del sistema", {"fields": ("rol",)}),
     )
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('correo', 'nombre', 'apellido', 'rol', 'password1', 'password2'),
-        }),
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        ("Rol del sistema", {"fields": ("rol",)}),
     )
 
 
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):
-    list_display = ['nombre', 'correo', 'telefono']
-    search_fields = ['nombre', 'correo']
+    list_display = ["nombre", "telefono", "correo"]
+    search_fields = ["nombre", "correo"]
+    ordering = ["nombre"]
 
 
 @admin.register(Evento)
 class EventoAdmin(admin.ModelAdmin):
-    list_display = ['nombre_evento', 'estado', 'fecha_evento', 'cliente', 'coordinador', 'presupuesto']
-    list_filter = ['estado', 'fecha_evento']
-    search_fields = ['nombre_evento', 'cliente__nombre', 'coordinador__correo']
-    inlines = [TareaInline]
+    list_display = ["nombre_evento", "fecha_evento", "ubicacion", "estado", "cliente", "usuario"]
+    list_filter = ["estado", "fecha_evento"]
+    search_fields = ["nombre_evento", "ubicacion", "cliente__nombre"]
+    ordering = ["fecha_evento"]
+    date_hierarchy = "fecha_evento"
 
 
 @admin.register(Tarea)
 class TareaAdmin(admin.ModelAdmin):
-    list_display = ['nombre_tarea', 'prioridad', 'estado', 'fecha_limite', 'evento']
-    list_filter = ['estado', 'prioridad']
-    search_fields = ['nombre_tarea', 'evento__nombre_evento']
+    list_display = ["nombre_tarea", "prioridad", "estado", "fecha_limite", "evento"]
+    list_filter = ["prioridad", "estado"]
+    search_fields = ["nombre_tarea", "evento__nombre_evento"]
+    ordering = ["fecha_limite", "prioridad"]
 
 
 @admin.register(Proveedor)
 class ProveedorAdmin(admin.ModelAdmin):
-    list_display = ['nombre_empresa', 'servicio', 'correo', 'telefono']
-    search_fields = ['nombre_empresa', 'servicio']
+    list_display = ["nombre_empresa", "contacto", "telefono", "correo", "servicio"]
+    search_fields = ["nombre_empresa", "servicio", "contacto"]
+    ordering = ["nombre_empresa"]

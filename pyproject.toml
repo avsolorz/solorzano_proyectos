@@ -20,5 +20,5 @@ dependencies = [
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
-python_files = ["tests/test_*.py"]
+python_files = ["test_*.py"]
 addopts = "--cov=proyectos --cov-report=term-missing -v"

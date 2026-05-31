@@ -1,31 +1,34 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
 class EsAdmin(BasePermission):
-    message = 'Se requiere rol de administrador.'
-
+    """Solo usuarios con is_staff=True o rol admin tienen acceso total."""
     def has_permission(self, request, view):
         return bool(
             request.user and
             request.user.is_authenticated and
-            request.user.rol == 'admin'
+            (request.user.is_staff or getattr(request.user, "rol", None) == "admin")
         )
 
 
-class EsCoordinador(BasePermission):
-    message = 'Se requiere rol de coordinador o administrador.'
+class EsGestorOAdmin(BasePermission):
+    """Gestores y admins pueden crear, editar. No pueden eliminar (solo admin)."""
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        rol = getattr(request.user, "rol", None)
+        if request.user.is_staff or rol == "admin":
+            return True
+        if request.method == "DELETE":
+            return False
+        return rol in ("gestor", "admin")
 
+
+class SoloLectura(BasePermission):
+    """Permite solo métodos seguros (GET, HEAD, OPTIONS) a usuarios autenticados."""
     def has_permission(self, request, view):
         return bool(
             request.user and
             request.user.is_authenticated and
-            request.user.rol in ['admin', 'coordinador']
-        )
-
-
-class EsPropietarioOAdmin(BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return (
-            request.user.rol == 'admin' or
-            obj.coordinador == request.user
+            request.method in SAFE_METHODS
         )
