@@ -6,9 +6,9 @@ GRANT ALL PRIVILEGES ON DATABASE solorzano_proyecto_db TO solorzano_user;
 
 mkdir -p store/models store/serializers store/views store/tests
 
-touch cursos/models/__init__.py
-touch cursos/serializers/__init__.py
-touch cursos/views/__init__.py
-touch cursos/tests/__init__.py
-touch cursos/filters.py
-touch cursos/permissions.py
+touch proyectos/models/__init__.py
+touch proyectos/serializers/__init__.py
+touch proyectos/views/__init__.py
+touch proyectos/tests/__init__.py
+touch proyectos/filters.py
+touch proyectos/permissions.py
