@@ -1,5 +1,5 @@
 import django_filters
-from proyectos.models import Evento, Tarea
+from proyectos.models import Evento, Tarea, RedSocial, Disenador
 
 
 class EventoFilter(django_filters.FilterSet):
@@ -36,3 +36,21 @@ class TareaFilter(django_filters.FilterSet):
             "nombre_tarea", "estado", "prioridad", "evento",
             "fecha_limite_desde", "fecha_limite_hasta",
         ]
+
+
+class RedSocialFilter(django_filters.FilterSet):
+    nombre_red = django_filters.CharFilter(lookup_expr="icontains")
+
+    class Meta:
+        model = RedSocial
+        fields = ["nombre_red"]
+
+
+class DisenadorFilter(django_filters.FilterSet):
+    nombre = django_filters.CharFilter(lookup_expr="icontains")
+    especialidad = django_filters.CharFilter(lookup_expr="icontains")
+    correo = django_filters.CharFilter(lookup_expr="icontains")
+
+    class Meta:
+        model = Disenador
+        fields = ["nombre", "especialidad", "correo"]

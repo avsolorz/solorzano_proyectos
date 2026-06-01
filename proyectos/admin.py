@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from proyectos.models import Usuario, Cliente, Evento, Tarea, Proveedor
+from proyectos.models import Usuario, Cliente, Evento, Tarea, Proveedor, RedSocial, Disenador
 
 
 @admin.register(Usuario)
@@ -46,3 +46,17 @@ class ProveedorAdmin(admin.ModelAdmin):
     list_display = ["nombre_empresa", "contacto", "telefono", "correo", "servicio"]
     search_fields = ["nombre_empresa", "servicio", "contacto"]
     ordering = ["nombre_empresa"]
+
+
+@admin.register(RedSocial)
+class RedSocialAdmin(admin.ModelAdmin):
+    list_display = ["id", "nombre_red"]
+    search_fields = ["nombre_red"]
+    ordering = ["nombre_red"]
+
+
+@admin.register(Disenador)
+class DisenadorAdmin(admin.ModelAdmin):
+    list_display = ["nombre", "especialidad", "correo", "telefono"]
+    search_fields = ["nombre", "correo", "especialidad"]
+    ordering = ["nombre"]

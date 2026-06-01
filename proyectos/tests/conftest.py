@@ -1,13 +1,11 @@
 import pytest
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
-from proyectos.models import Usuario, Cliente, Evento, Tarea, Proveedor
+from proyectos.models import Usuario, Cliente, Evento, Tarea, Proveedor, RedSocial, Disenador
 from datetime import date, timedelta
 
 
-# ------------------------------------------------------------------
-# Clientes autenticados
-# ------------------------------------------------------------------
+
 @pytest.fixture
 def api_client():
     return APIClient()
@@ -66,9 +64,7 @@ def colaborador_client(api_client, colaborador_user):
     return api_client
 
 
-# ------------------------------------------------------------------
-# Fixtures de modelos
-# ------------------------------------------------------------------
+
 @pytest.fixture
 def cliente(db):
     return Cliente.objects.create(
@@ -113,4 +109,21 @@ def proveedor(db):
         telefono="0998765432",
         correo="info@cateringgourmet.com",
         servicio="Catering y alimentación",
+    )
+
+
+@pytest.fixture
+def red_social(db):
+    return RedSocial.objects.create(
+        nombre_red="Instagram",
+    )
+
+
+@pytest.fixture
+def disenador(db):
+    return Disenador.objects.create(
+        nombre="María García",
+        especialidad="Diseño Gráfico",
+        telefono="0991234567",
+        correo="maria@disenio.com",
     )

@@ -24,7 +24,6 @@ class TareaViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["patch"], url_path="cambiar-estado")
     def cambiar_estado(self, request, pk=None):
-        """PATCH /api/tareas/{id}/cambiar-estado/"""
         tarea = self.get_object()
         nuevo_estado = request.data.get("estado")
         estados_validos = [e[0] for e in Tarea.Estado.choices]

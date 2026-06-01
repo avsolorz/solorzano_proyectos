@@ -14,26 +14,15 @@ from proyectos.serializers.auth import (
 
 
 class LoginView(TokenObtainPairView):
-    """
-    POST /api/auth/login/
-    Body: { "username": "...", "password": "..." }
-    """
     serializer_class = CustomTokenObtainPairSerializer
     permission_classes = [AllowAny]
 
 
 class RefreshTokenView(TokenRefreshView):
-    """
-    POST /api/auth/refresh/
-    Body: { "refresh": "..." }
-    """
     permission_classes = [AllowAny]
 
 
 class RegistroView(generics.CreateAPIView):
-    """
-    POST /api/auth/registro/
-    """
     queryset = Usuario.objects.all()
     serializer_class = RegistroUsuarioSerializer
     permission_classes = [AllowAny]
@@ -62,10 +51,6 @@ class RegistroView(generics.CreateAPIView):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout_view(request):
-    """
-    POST /api/auth/logout/
-    Body: { "refresh": "..." }
-    """
     try:
         refresh_token = request.data.get("refresh")
         if not refresh_token:
@@ -84,10 +69,6 @@ def logout_view(request):
 
 
 class PerfilView(generics.RetrieveUpdateAPIView):
-    """
-    GET  /api/auth/perfil/
-    PUT  /api/auth/perfil/
-    """
     serializer_class = PerfilUsuarioSerializer
     permission_classes = [IsAuthenticated]
 
@@ -98,9 +79,6 @@ class PerfilView(generics.RetrieveUpdateAPIView):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def cambiar_password(request):
-    """
-    POST /api/auth/cambiar-password/
-    """
     serializer = CambiarPasswordSerializer(
         data=request.data, context={"request": request}
     )

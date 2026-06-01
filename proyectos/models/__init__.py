@@ -3,6 +3,8 @@ from .cliente import Cliente
 from .evento import Evento
 from .tarea import Tarea
 from .proveedor import Proveedor
+from .red_social import RedSocial
+from .disenador import Disenador
 
 __all__ = [
     "Usuario",
@@ -10,4 +12,6 @@ __all__ = [
     "Evento",
     "Tarea",
     "Proveedor",
+    "RedSocial",
+    "Disenador",
 ]

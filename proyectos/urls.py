@@ -2,7 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from proyectos.views import (
     UsuarioViewSet, ClienteViewSet, EventoViewSet,
-    TareaViewSet, ProveedorViewSet, health_check,
+    TareaViewSet, ProveedorViewSet, RedSocialViewSet,
+    DisenadorViewSet, health_check,
     LoginView, RefreshTokenView, RegistroView,
     logout_view, PerfilView, cambiar_password,
 )
@@ -13,6 +14,8 @@ router.register("clientes", ClienteViewSet, basename="cliente")
 router.register("eventos", EventoViewSet, basename="evento")
 router.register("tareas", TareaViewSet, basename="tarea")
 router.register("proveedores", ProveedorViewSet, basename="proveedor")
+router.register("redes-sociales", RedSocialViewSet, basename="red-social")
+router.register("disenadores", DisenadorViewSet, basename="disenador")
 
 auth_urlpatterns = [
     path("login/",            LoginView.as_view(),        name="auth-login"),
