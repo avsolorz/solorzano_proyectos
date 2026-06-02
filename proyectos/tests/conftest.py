@@ -1,9 +1,9 @@
+import uuid
 import pytest
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 from proyectos.models import Usuario, Cliente, Evento, Tarea, Proveedor, RedSocial, Disenador
 from datetime import date, timedelta
-
 
 
 @pytest.fixture
@@ -14,6 +14,26 @@ def api_client():
 def get_token(user):
     refresh = RefreshToken.for_user(user)
     return str(refresh.access_token)
+
+
+def get_jwt_client(user):
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {get_token(user)}")
+    return client
+
+
+class UsuarioFactory:
+    @staticmethod
+    def create(rol="colaborador", username=None, password="Test123!", **kwargs):
+        if username is None:
+            username = f"user_{uuid.uuid4().hex[:8]}"
+        return Usuario.objects.create_user(
+            username=username,
+            email=f"{username}@test.com",
+            password=password,
+            rol=rol,
+            **kwargs
+        )
 
 
 @pytest.fixture
@@ -62,7 +82,6 @@ def gestor_client(api_client, gestor_user):
 def colaborador_client(api_client, colaborador_user):
     api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {get_token(colaborador_user)}")
     return api_client
-
 
 
 @pytest.fixture
