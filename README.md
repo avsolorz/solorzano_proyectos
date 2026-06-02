@@ -351,21 +351,8 @@ Para importar en Postman:
 
 ## Despliegue
 
-URL de producción: `https://[pendiente]`
+URL de producción: `solorzano-proyectos.uaeftt-ute.site]`
 
----
-
-## Correr tests
-
-```bash
-uv run pytest
-```
-
-Con reporte de cobertura:
-
-```bash
-uv run pytest --cov=proyectos --cov-report=term-missing
-```
 
 ---
 
@@ -375,4 +362,4 @@ uv run pytest --cov=proyectos --cov-report=term-missing
 |-------------|----------------------------------------------|
 | admin       | Acceso total — crear, editar y eliminar todo |
 | coordinador | Gestiona sus propios eventos y tareas        |
-| asistente   | Solo lectura en la mayoría de recursos       |
+| asistente   | Solo lectura                                 |
