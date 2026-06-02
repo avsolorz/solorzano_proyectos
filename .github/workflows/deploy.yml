@@ -73,6 +73,17 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Verificar clave SSH
+        run: |
+          echo "${{ secrets.VPS_SSH_KEY }}" | base64 -d > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "=== Tipo de clave ==="
+          file ~/.ssh/id_ed25519
+          echo "=== Primeros bytes ==="
+          head -1 ~/.ssh/id_ed25519
+          echo "=== Validar clave ==="
+          ssh-keygen -l -f ~/.ssh/id_ed25519
+
       - name: Deploy to VM
         run: |
           ssh -o StrictHostKeyChecking=no \
