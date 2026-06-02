@@ -1,4 +1,3 @@
-# .github/workflows/deploy.yml
 name: Gestor Proyectos — CI/CD Pipeline
 
 on:
@@ -9,7 +8,6 @@ on:
 
 jobs:
 
-  # ── Job 1: Tests ──────────────────────────────────────────
   test:
     name: Run Tests
     runs-on: ubuntu-latest
@@ -58,7 +56,6 @@ jobs:
           CORS_ALLOW_ALL_ORIGINS: True
         run: uv run python manage.py test proyectos --verbosity=2
 
-  # ── Job 2: Deploy ─────────────────────────────────────────
   deploy:
     name: Deploy to Azure VM
     needs: test
@@ -77,36 +74,17 @@ jobs:
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to VM
-        env:
-          VPS_HOST:    ${{ secrets.VPS_HOST }}
-          VPS_USER:    ${{ secrets.VPS_USERNAME }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
-          ssh $VPS_USER@$VPS_HOST << ENDSSH
-            set -e
-
-            echo "── 1. Actualizando código ──"
-            cd $DEPLOY_PATH
-            git fetch origin
-            git reset --hard origin/main
-
-            echo "── 2. Instalando dependencias ──"
-            uv sync --frozen
-
-            echo "── 3. Aplicando migraciones ──"
-            uv run python manage.py migrate --noinput
-
-            echo "── 4. Recolectando estáticos ──"
-            uv run python manage.py collectstatic --noinput --clear
-
-            echo "── 5. Reiniciando servicios ──"
-            sudo systemctl restart gunicorn-solorzano_proyectos
-            sudo systemctl restart nginx
-
-            echo "── 6. Verificando salud de la API ──"
-            sleep 3
-            curl -sf http://127.0.0.1/api/health/ && echo "API OK" || echo "API ERROR"
-
-            echo "Despliegue completado exitosamente"
-            
-          ENDSSH
+          ssh -o StrictHostKeyChecking=no \
+              -i ~/.ssh/id_ed25519 \
+              ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} \
+              "set -e && \
+               cd ${{ secrets.DEPLOY_PATH }} && \
+               git fetch origin && \
+               git reset --hard origin/main && \
+               uv sync --frozen && \
+               uv run python manage.py migrate --noinput && \
+               uv run python manage.py collectstatic --noinput --clear && \
+               sudo systemctl restart gunicorn-solorzano_proyectos && \
+               sudo systemctl restart nginx && \
+               echo Despliegue completado"
