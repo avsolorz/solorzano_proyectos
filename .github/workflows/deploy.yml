@@ -90,6 +90,7 @@ jobs:
               -i ~/.ssh/id_ed25519 \
               ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} \
               "set -e && \
+               export PATH=\"/root/.local/bin:/usr/local/bin:$PATH\" && \
                cd ${{ secrets.DEPLOY_PATH }} && \
                git fetch origin && \
                git reset --hard origin/main && \
