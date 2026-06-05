@@ -74,6 +74,20 @@ jobs:
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
           ssh-keygen -l -f ~/.ssh/id_ed25519
 
+      - name: Debug conexion
+        run: |
+          echo "=== Secrets configurados ==="
+          echo "Host: ${{ secrets.VPS_HOST }}"
+          echo "Usuario: ${{ secrets.VPS_USERNAME }}"
+          echo "Deploy path: ${{ secrets.DEPLOY_PATH }}"
+          echo "=== Fingerprint clave ==="
+          ssh-keygen -l -f ~/.ssh/id_ed25519
+          echo "=== Test conexion ==="
+          ssh -v -o StrictHostKeyChecking=no \
+              -i ~/.ssh/id_ed25519 \
+              ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} \
+              "whoami && echo Conexion exitosa"
+
       - name: Deploy to VM
         run: |
           ssh -o StrictHostKeyChecking=no \
@@ -89,4 +103,4 @@ jobs:
                uv run python manage.py collectstatic --noinput --clear && \
                sudo systemctl restart gunicorn-solorzano_proyectos && \
                sudo systemctl restart nginx && \
-               echo Despliegue completado"d
+               echo Despliegue completado"
